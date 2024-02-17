@@ -14,6 +14,18 @@ func nextTokenKind(lexer *lex.Lexer, expectedKind lex.TokenKind) (lex.Token, *Pa
 	return token, nil
 }
 
+func peakTokenKind(lexer *lex.Lexer, expectedKind lex.TokenKind) (lex.Token, *ParserError) {
+	token, err := lexer.Peak()
+	if err != nil {
+		return lex.Token{}, newError(InternalErr, "")
+	}
+	if token.Kind != expectedKind {
+		return lex.Token{}, unexpectedTokenErr(string(expectedKind), token.Content)
+	}
+
+	return token, nil
+}
+
 func nextTokenUntil(lexer *lex.Lexer, pred func(lex.Token) bool) *ParserError {
 	for {
 		token, err := lexer.Peak()

@@ -39,6 +39,16 @@ func TestTokenSymbol(t *testing.T) {
 	}
 }
 
+func TestNewline(t *testing.T) {
+	content := []byte(`
+	`)
+	lexer := lex.NewLexer(content)
+	token, _ := lexer.Next()
+	if token.Kind != lex.TokenNewline {
+		t.Errorf("Expected token newline got: %s", token.Kind)
+	}
+}
+
 func TestAst(t *testing.T) {
 	content := []byte("{comp:children}")
 	lexer := lex.NewLexer(content)

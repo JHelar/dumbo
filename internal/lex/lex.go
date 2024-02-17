@@ -22,12 +22,13 @@ const (
 	TokenQuote       TokenKind = "\""
 	TokenSlash       TokenKind = "/"
 	TokenEquals      TokenKind = "="
+	TokenComma       TokenKind = ","
 	TokenSpace       TokenKind = "space"
 	TokenNewline     TokenKind = "newline"
 	TokenSymbol      TokenKind = "symbol"
 )
 
-var SingleTokens []rune = []rune{'(', ')', '{', '}', '<', '>', '\\', '/', '=', ' ', '"', '\n'}
+var SingleTokens []rune = []rune{'(', ')', '{', '}', '<', '>', '\\', '/', '=', ' ', '"', '\n', ','}
 
 type Token struct {
 	Content string
@@ -92,9 +93,14 @@ func (lex *Lexer) Next() (Token, error) {
 		kind := TokenKind(r)
 
 		switch r {
-		case '(', ')', '{', '}', '<', '>', '\\', '/', '=', '"':
+		case '(', ')', '{', '}', '<', '>', '\\', '/', '=', '"', ',':
 			return Token{
 				Kind:    kind,
+				Content: content,
+			}, nil
+		case '\n':
+			return Token{
+				Kind:    TokenNewline,
 				Content: content,
 			}, nil
 		case ' ':

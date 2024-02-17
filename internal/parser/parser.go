@@ -18,16 +18,33 @@ func NewParser(lexer *lex.Lexer) *Parser {
 	}
 }
 
-func (parser *Parser) Next() (Expression, *ParserError) {
-	token, err := parser.lexer.Peak()
+func parse(lexer *lex.Lexer) (Expression, *ParserError) {
+	err := lexer.SkipUntil(func(t lex.Token) bool {
+		return t.Kind == lex.TokenSpace || t.Kind == lex.TokenNewline
+	})
+	if err != nil {
+		return nil, newError(InternalErr, err.Error())
+	}
+
+	token, err := lexer.Peak()
 	if err != nil {
 		return nil, newError(err, "Error reading next token")
 	}
 
 	switch token.Kind {
 	case lex.TokenLessThen:
-		return parseElement(parser.lexer)
-	default:
-		return nil, nil
+		lexer.Next()
+		return parseElement(lexer)
+	case lex.TokenSymbol:
+		if isComponentToken(token) {
+			lexer.Next()
+			return parseComponent(lexer)
+		}
 	}
+
+	return nil, unexpectedTokenErr("element or component", token.Content)
+}
+
+func (parser *Parser) Next() (Expression, *ParserError) {
+	return parse(parser.lexer)
 }

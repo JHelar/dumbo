@@ -7,6 +7,7 @@ import (
 
 var UnexpectedTokenErr = errors.New("Unexpected token")
 var InternalErr = errors.New("Internal error")
+var SyntaxErr = errors.New("Syntax error")
 
 type ParserError struct {
 	Err    error
