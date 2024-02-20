@@ -1,8 +1,6 @@
 package parser_test
 
 import (
-	"fmt"
-	"log"
 	"testing"
 
 	"github.com/JHelar/dumbo/internal/lex"
@@ -14,11 +12,9 @@ func TestSimpleElement(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		log.Print(expression.String())
 	}
 }
 
@@ -27,11 +23,20 @@ func TestElementWithAttributes(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
+	}
+}
+
+func TestElementWithNumberAttributes(t *testing.T) {
+	content := []byte(`<div data-number={9000}>Test</div>`)
+	lexer := lex.NewLexer(content)
+	parser := parser.NewParser(lexer)
+
+	_, err := parser.Parse()
+	if err != nil {
+		t.Errorf("Should be able to parse, got error: %s", err.Error())
 	}
 }
 
@@ -40,11 +45,9 @@ func TestElementWithNestedElement(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
 	}
 }
 
@@ -53,11 +56,9 @@ func TestElementWithExpression(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
 	}
 }
 
@@ -69,11 +70,9 @@ func TestElementWithNewlineChildren(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
 	}
 }
 
@@ -82,36 +81,8 @@ func TestStringExpression(t *testing.T) {
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)
 
-	expression, err := parser.Next()
+	_, err := parser.Parse()
 	if err != nil {
 		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
-	}
-}
-
-func TestSimpleComponentExpression(t *testing.T) {
-	content := []byte(`comp Test() = <div>{"Test"}</div>`)
-	lexer := lex.NewLexer(content)
-	parser := parser.NewParser(lexer)
-
-	expression, err := parser.Next()
-	if err != nil {
-		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
-	}
-}
-
-func TestComponentExpression(t *testing.T) {
-	content := []byte(`comp Test(heading) = <div>{heading}</div>`)
-	lexer := lex.NewLexer(content)
-	parser := parser.NewParser(lexer)
-
-	expression, err := parser.Next()
-	if err != nil {
-		t.Errorf("Should be able to parse, got error: %s", err.Error())
-	} else {
-		fmt.Println(expression.String())
 	}
 }

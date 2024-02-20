@@ -2,22 +2,51 @@ package template
 
 import (
 	"log"
-	"os"
 
 	"github.com/JHelar/dumbo/internal/lex"
+	"github.com/JHelar/dumbo/internal/parser"
 )
 
-func ParseFile(name string) {
-	file, _ := os.Open(name)
-	lexer := lex.NewLexerFromFile(file)
-
-	token, _ := lexer.Next()
-	log.Print(token)
+type ComponentRenderer func(children string, props map[string]interface{}) string
+type DumboComponent struct {
+	name     string
+	renderer ComponentRenderer
 }
 
-func Parse(content []byte) {
-	lexer := lex.NewLexer(content)
+type DumboTemplate struct {
+	expr  []parser.Expression
+	dumbo *Dumbo
+}
 
-	token, _ := lexer.Next()
-	log.Printf("Got kind: %s, %s", token.Kind, token.Content)
+type Dumbo struct {
+	components map[string]DumboComponent
+}
+
+func New() *Dumbo {
+	return &Dumbo{
+		components: map[string]DumboComponent{},
+	}
+}
+
+func (dumbo *Dumbo) Parse(templateString string) *DumboTemplate {
+	content := []byte(templateString)
+	lexer := lex.NewLexer(content)
+	parser := parser.NewParser(lexer)
+
+	expr, err := parser.Parse()
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
+	return &DumboTemplate{
+		expr:  expr,
+		dumbo: dumbo,
+	}
+}
+
+func (dumbo *Dumbo) AddComponent(componentName string, renderer ComponentRenderer) {
+	dumbo.components[componentName] = DumboComponent{
+		name:     componentName,
+		renderer: renderer,
+	}
 }

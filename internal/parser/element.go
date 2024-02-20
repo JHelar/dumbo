@@ -7,16 +7,16 @@ import (
 )
 
 type Element struct {
-	tagName    string
-	children   []Expression
-	attributes []Expression
+	TagName    string
+	Children   []Expression
+	Attributes []Attribute
 }
 
-func newElementExpression(tagName string, children []Expression, attributes []Expression) Expression {
+func newElementExpression(tagName string, children []Expression, attributes []Attribute) Expression {
 	return Expression(Element{
-		tagName:    tagName,
-		children:   children,
-		attributes: attributes,
+		TagName:    tagName,
+		Children:   children,
+		Attributes: attributes,
 	})
 }
 
@@ -40,7 +40,7 @@ func parseElement(lexer *lex.Lexer) (Expression, *ParserError) {
 	// Check selfclosing element
 	closingToken, closingTokenErr := lexer.Next()
 	if closingTokenErr != nil {
-		return nil, newError(InternalErr, closingTokenErr.Error())
+		return nil, newError(ErrInternal, closingTokenErr.Error())
 	} else if closingToken.Kind == lex.TokenSlash {
 		_, err = nextTokenKind(lexer, lex.TokenGreaterThen)
 		if err != nil {
@@ -51,7 +51,7 @@ func parseElement(lexer *lex.Lexer) (Expression, *ParserError) {
 	}
 
 	if closingToken.Kind != lex.TokenGreaterThen {
-		return nil, unexpectedTokenErr(">", closingToken.Content)
+		return nil, unexpectedTokenErr(lex.TokenGreaterThen, closingToken)
 	}
 
 	// Parse children
@@ -61,7 +61,7 @@ childLoop:
 	for {
 		childToken, childTokenErr := lexer.Peak()
 		if childTokenErr != nil {
-			return nil, newError(InternalErr, childTokenErr.Error())
+			return nil, newError(ErrInternal, childTokenErr.Error())
 		}
 
 		switch childToken.Kind {
@@ -91,7 +91,7 @@ childLoop:
 			}
 			children = append(children, child)
 		default:
-			return nil, newError(SyntaxErr, fmt.Sprintf("Invalid syntax %s", childToken.Content))
+			return nil, newError(ErrSyntax, fmt.Sprintf("Invalid syntax %s", childToken.Content))
 		}
 	}
 
@@ -105,7 +105,7 @@ childLoop:
 		return nil, err
 	}
 	if endElementName.Content != tagName {
-		return nil, newError(SyntaxErr, fmt.Sprintf("Invalid element end name, expected '%s' got '%s'", tagName, endElementName.Content))
+		return nil, newError(ErrSyntax, fmt.Sprintf("Invalid element end name, expected '%s' got '%s'", tagName, endElementName.Content))
 	}
 
 	_, err = nextTokenKind(lexer, lex.TokenGreaterThen)
@@ -114,20 +114,20 @@ childLoop:
 	}
 
 	return Expression(Element{
-		tagName:    tagName,
-		children:   children,
-		attributes: attributes,
+		TagName:    tagName,
+		Children:   children,
+		Attributes: attributes,
 	}), nil
 }
 
 func (e Element) String() string {
 	attributeValues := ""
-	for _, expr := range e.attributes {
+	for _, expr := range e.Attributes {
 		attributeValues += fmt.Sprintf("\n\t%s", expr.String())
 	}
 
 	childValues := ""
-	for _, expr := range e.children {
+	for _, expr := range e.Children {
 		childValues += fmt.Sprintf("\n\t%s", expr.String())
 	}
 
@@ -136,5 +136,5 @@ func (e Element) String() string {
 		tagName: %s
 		attributes: %s
 		children: %s
-	}`, e.tagName, attributeValues, childValues)
+	}`, e.TagName, attributeValues, childValues)
 }

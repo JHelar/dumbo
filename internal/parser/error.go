@@ -3,11 +3,13 @@ package parser
 import (
 	"errors"
 	"fmt"
+
+	"github.com/JHelar/dumbo/internal/lex"
 )
 
-var UnexpectedTokenErr = errors.New("Unexpected token")
-var InternalErr = errors.New("Internal error")
-var SyntaxErr = errors.New("Syntax error")
+var ErrUnexpectedToken = errors.New("unexpected token")
+var ErrInternal = errors.New("internal error")
+var ErrSyntax = errors.New("syntax error")
 
 type ParserError struct {
 	Err    error
@@ -25,6 +27,10 @@ func newError(err error, reason string) *ParserError {
 	}
 }
 
-func unexpectedTokenErr(expected string, got string) *ParserError {
-	return newError(UnexpectedTokenErr, fmt.Sprintf("Expected: '%s' got: '%s'", expected, got))
+func unexpectedTokenErr(expected lex.TokenKind, got lex.Token) *ParserError {
+	return newError(ErrUnexpectedToken, fmt.Sprintf("[%d:%d] expected: %s got: '%s'(%s)", got.Row, got.Col, expected, got.Content, got.Kind))
+}
+
+func internalErr(err error) *ParserError {
+	return newError(err, ErrInternal.Error())
 }

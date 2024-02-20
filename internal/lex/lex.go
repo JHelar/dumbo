@@ -3,11 +3,14 @@ package lex
 import (
 	"os"
 	"slices"
+	"strconv"
 )
 
 type Lexer struct {
 	currentToken Token
 	reader       *runeReader
+	currentRow   int
+	currentCol   int
 }
 
 type TokenKind string
@@ -23,22 +26,28 @@ const (
 	TokenSlash       TokenKind = "/"
 	TokenEquals      TokenKind = "="
 	TokenComma       TokenKind = ","
+	TokenNumber      TokenKind = "number"
 	TokenSpace       TokenKind = "space"
 	TokenNewline     TokenKind = "newline"
+	TokenTab         TokenKind = "tab"
 	TokenSymbol      TokenKind = "symbol"
 )
 
-var SingleTokens []rune = []rune{'(', ')', '{', '}', '<', '>', '\\', '/', '=', ' ', '"', '\n', ','}
+var SingleTokens []rune = []rune{'(', ')', '{', '}', '<', '>', '\\', '/', '=', ' ', '"', '\n', ',', '\t'}
 
 type Token struct {
 	Content string
 	Kind    TokenKind
+	Row     int
+	Col     int
 }
 
 func NewLexerFromFile(file *os.File) *Lexer {
 	return &Lexer{
 		reader:       newRuneReaderFromFile(file),
 		currentToken: Token{},
+		currentRow:   0,
+		currentCol:   0,
 	}
 }
 
@@ -46,6 +55,8 @@ func NewLexer(content []byte) *Lexer {
 	return &Lexer{
 		reader:       newRuneReader(content),
 		currentToken: Token{},
+		currentRow:   0,
+		currentCol:   0,
 	}
 }
 
@@ -94,31 +105,68 @@ func (lex *Lexer) Next() (Token, error) {
 
 		switch r {
 		case '(', ')', '{', '}', '<', '>', '\\', '/', '=', '"', ',':
-			return Token{
+			token := Token{
 				Kind:    kind,
 				Content: content,
-			}, nil
+				Row:     lex.currentRow,
+				Col:     lex.currentCol,
+			}
+			lex.currentCol++
+			return token, nil
 		case '\n':
-			return Token{
+			token := Token{
 				Kind:    TokenNewline,
 				Content: content,
-			}, nil
+				Row:     lex.currentRow,
+				Col:     lex.currentCol,
+			}
+			lex.currentRow++
+			lex.currentCol = 0
+			return token, nil
 		case ' ':
 			content += lex.takeUntil(func(r rune) bool {
 				return r == ' '
 			})
-			return Token{
+			token := Token{
 				Kind:    TokenSpace,
 				Content: content,
-			}, nil
+				Row:     lex.currentRow,
+				Col:     lex.currentCol,
+			}
+			lex.currentCol += len(content)
+			return token, nil
+		case '\t':
+			content += lex.takeUntil(func(r rune) bool {
+				return r == '\t'
+			})
+			token := Token{
+				Kind:    TokenTab,
+				Content: content,
+				Row:     lex.currentRow,
+				Col:     lex.currentCol,
+			}
+			lex.currentCol += len(content)
+			return token, nil
 		default:
 			content += lex.takeUntil(func(r rune) bool {
 				return !slices.Contains(SingleTokens, r)
 			})
+			lex.currentCol += len(content)
+
+			if _, numberErr := strconv.Atoi(content); numberErr == nil {
+				return Token{
+					Kind:    TokenNumber,
+					Content: content,
+					Row:     lex.currentRow,
+					Col:     lex.currentCol,
+				}, nil
+			}
 
 			return Token{
 				Kind:    TokenSymbol,
 				Content: content,
+				Row:     lex.currentRow,
+				Col:     lex.currentCol,
 			}, nil
 		}
 	}

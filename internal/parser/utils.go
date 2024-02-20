@@ -5,10 +5,10 @@ import "github.com/JHelar/dumbo/internal/lex"
 func nextTokenKind(lexer *lex.Lexer, expectedKind lex.TokenKind) (lex.Token, *ParserError) {
 	token, err := lexer.Next()
 	if err != nil {
-		return lex.Token{}, newError(InternalErr, "")
+		return lex.Token{}, newError(ErrInternal, "")
 	}
 	if token.Kind != expectedKind {
-		return lex.Token{}, unexpectedTokenErr(string(expectedKind), token.Content)
+		return lex.Token{}, unexpectedTokenErr(expectedKind, token)
 	}
 
 	return token, nil
@@ -17,10 +17,10 @@ func nextTokenKind(lexer *lex.Lexer, expectedKind lex.TokenKind) (lex.Token, *Pa
 func peakTokenKind(lexer *lex.Lexer, expectedKind lex.TokenKind) (lex.Token, *ParserError) {
 	token, err := lexer.Peak()
 	if err != nil {
-		return lex.Token{}, newError(InternalErr, "")
+		return lex.Token{}, newError(ErrInternal, "")
 	}
 	if token.Kind != expectedKind {
-		return lex.Token{}, unexpectedTokenErr(string(expectedKind), token.Content)
+		return lex.Token{}, unexpectedTokenErr(expectedKind, token)
 	}
 
 	return token, nil
@@ -30,7 +30,7 @@ func nextTokenUntil(lexer *lex.Lexer, pred func(lex.Token) bool) *ParserError {
 	for {
 		token, err := lexer.Peak()
 		if err != nil {
-			return newError(InternalErr, "")
+			return newError(ErrInternal, "")
 		}
 		if !pred(token) {
 			break
@@ -47,7 +47,7 @@ func skipSpace(lexer *lex.Lexer) *ParserError {
 		return t.Kind == lex.TokenSpace
 	})
 	if err != nil {
-		return newError(InternalErr, err.Error())
+		return newError(ErrInternal, err.Error())
 	}
 
 	return nil

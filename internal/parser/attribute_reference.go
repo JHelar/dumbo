@@ -7,12 +7,12 @@ import (
 )
 
 type AttributeReference struct {
-	value string
+	PropName string
 }
 
 func newAttributeReferenceExpression(value string) Expression {
 	return Expression(AttributeReference{
-		value: value,
+		PropName: value,
 	})
 }
 
@@ -20,7 +20,7 @@ func (e AttributeReference) String() string {
 	return fmt.Sprintf(`{
 		type: AttributeReference
 		value: %s
-	}`, e.value)
+	}`, e.PropName)
 }
 
 func parseAttributeReference(lexer *lex.Lexer) (Expression, *ParserError) {

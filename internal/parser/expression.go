@@ -12,7 +12,7 @@ func parseExpression(lexer *lex.Lexer) (Expression, *ParserError) {
 
 	expressionToken, expressionTokenErr := lexer.Peak()
 	if expressionTokenErr != nil {
-		return nil, newError(InternalErr, expressionTokenErr.Error())
+		return nil, newError(ErrInternal, expressionTokenErr.Error())
 	}
 	switch expressionToken.Kind {
 	case lex.TokenLessThen:
@@ -28,7 +28,7 @@ func parseExpression(lexer *lex.Lexer) (Expression, *ParserError) {
 	case lex.TokenSymbol:
 		expr, err = parseAttributeReference(lexer)
 	default:
-		return nil, newError(SyntaxErr, fmt.Sprintf("Expression is missing value got: %s", expressionToken.Content))
+		return nil, newError(ErrSyntax, fmt.Sprintf("Expression is missing value got: %s", expressionToken.Content))
 	}
 
 	if err != nil {

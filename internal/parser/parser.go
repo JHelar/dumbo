@@ -20,31 +20,30 @@ func NewParser(lexer *lex.Lexer) *Parser {
 
 func parse(lexer *lex.Lexer) (Expression, *ParserError) {
 	err := lexer.SkipUntil(func(t lex.Token) bool {
-		return t.Kind == lex.TokenSpace || t.Kind == lex.TokenNewline
+		return t.Kind == lex.TokenSpace || t.Kind == lex.TokenNewline || t.Kind == lex.TokenTab
 	})
 	if err != nil {
-		return nil, newError(InternalErr, err.Error())
+		return nil, internalErr(err)
 	}
 
-	token, err := lexer.Peak()
-	if err != nil {
-		return nil, newError(err, "Error reading next token")
+	_, tokenErr := nextTokenKind(lexer, lex.TokenLessThen)
+	if tokenErr != nil {
+		return nil, tokenErr
 	}
 
-	switch token.Kind {
-	case lex.TokenLessThen:
-		lexer.Next()
-		return parseElement(lexer)
-	case lex.TokenSymbol:
-		if isComponentToken(token) {
-			lexer.Next()
-			return parseComponent(lexer)
-		}
-	}
-
-	return nil, unexpectedTokenErr("element or component", token.Content)
+	return parseElement(lexer)
 }
 
-func (parser *Parser) Next() (Expression, *ParserError) {
-	return parse(parser.lexer)
+func (parser *Parser) Parse() ([]Expression, *ParserError) {
+	expressions := []Expression{}
+
+	for {
+		if expression, err := parse(parser.lexer); err != nil && err.Err == lex.EOFError {
+			return expressions, nil
+		} else if err != nil {
+			return nil, err
+		} else {
+			expressions = append(expressions, expression)
+		}
+	}
 }

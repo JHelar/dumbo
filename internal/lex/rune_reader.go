@@ -3,8 +3,12 @@ package lex
 import (
 	"bufio"
 	"bytes"
-	"log"
+	"errors"
 	"os"
+)
+
+var (
+	EOFError = errors.New("RuneReader EOF")
 )
 
 type runeReader struct {
@@ -32,7 +36,10 @@ func (rr *runeReader) Next() (rune, error) {
 		return r, nil
 	}
 
-	r, _, err := rr.reader.ReadRune()
+	r, size, err := rr.reader.ReadRune()
+	if size == 0 {
+		return 0, EOFError
+	}
 
 	if err != nil {
 		return 0, err
@@ -56,10 +63,9 @@ func (rr *runeReader) Peak() (rune, error) {
 		return rr.currentRune, nil
 	}
 
-	r, _, err := rr.reader.ReadRune()
+	r, err := rr.Next()
 
 	if err != nil {
-		log.Printf("Error peaking rune: %s", err.Error())
 		return 0, err
 	}
 
