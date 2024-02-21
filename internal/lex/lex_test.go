@@ -21,8 +21,7 @@ func TestTokenSpace(t *testing.T) {
 }
 
 func TestTokenSymbol(t *testing.T) {
-	content := []byte(`
-	test
+	content := []byte(`test
 	
 	
 	comp
@@ -61,6 +60,9 @@ func TestAst(t *testing.T) {
 	token2, _ := lexer.Next()
 	if token2.Kind != lex.TokenSymbol {
 		t.Errorf("Expected TokenSymbol got: %s", token2.Kind)
+	}
+	if token2.Content != "comp:children" {
+		t.Errorf("Expected comp:children got: %s", token2.Content)
 	}
 
 	token3, _ := lexer.Next()

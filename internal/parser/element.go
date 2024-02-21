@@ -2,9 +2,50 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/JHelar/dumbo/internal/lex"
 )
+
+type SelfClosingTag string
+
+const (
+	SelfClosingArea   SelfClosingTag = "area"
+	SelfClosingBase   SelfClosingTag = "base"
+	SelfClosingBr     SelfClosingTag = "br"
+	SelfClosingCol    SelfClosingTag = "col"
+	SelfClosingEmbed  SelfClosingTag = "embed"
+	SelfClosingHr     SelfClosingTag = "hr"
+	SelfClosingImg    SelfClosingTag = "img"
+	SelfClosingInput  SelfClosingTag = "input"
+	SelfClosingLink   SelfClosingTag = "link"
+	SelfClosingMeta   SelfClosingTag = "meta"
+	SelfClosingParam  SelfClosingTag = "param"
+	SelfClosingSource SelfClosingTag = "source"
+	SelfClosingTrack  SelfClosingTag = "track"
+	SelfClosingWbr    SelfClosingTag = "wbr"
+)
+
+var SelfClosingTags []SelfClosingTag = []SelfClosingTag{
+	SelfClosingArea,
+	SelfClosingBase,
+	SelfClosingBr,
+	SelfClosingCol,
+	SelfClosingEmbed,
+	SelfClosingHr,
+	SelfClosingImg,
+	SelfClosingInput,
+	SelfClosingLink,
+	SelfClosingMeta,
+	SelfClosingParam,
+	SelfClosingSource,
+	SelfClosingTrack,
+	SelfClosingWbr,
+}
+
+func IsSelfClosingElement(tagName string) bool {
+	return slices.Contains(SelfClosingTags, SelfClosingTag(tagName))
+}
 
 type Element struct {
 	TagName    string
@@ -37,11 +78,13 @@ func parseElement(lexer *lex.Lexer) (Expression, *ParserError) {
 		return nil, err
 	}
 
-	// Check selfclosing element
+	// Check self closing element
 	closingToken, closingTokenErr := lexer.Next()
 	if closingTokenErr != nil {
 		return nil, newError(ErrInternal, closingTokenErr.Error())
-	} else if closingToken.Kind == lex.TokenSlash {
+	}
+	// If self closed with trailing slash
+	if closingToken.Kind == lex.TokenSlash {
 		_, err = nextTokenKind(lexer, lex.TokenGreaterThen)
 		if err != nil {
 			return nil, err
@@ -50,6 +93,12 @@ func parseElement(lexer *lex.Lexer) (Expression, *ParserError) {
 		return newElementExpression(tagName, []Expression{}, attributes), nil
 	}
 
+	// If self closed without trailing slash (only applies to known html elements)
+	if closingToken.Kind == lex.TokenGreaterThen && IsSelfClosingElement(tagName) {
+		return newElementExpression(tagName, []Expression{}, attributes), nil
+	}
+
+	// Element start tag should be closed with a trailing >
 	if closingToken.Kind != lex.TokenGreaterThen {
 		return nil, unexpectedTokenErr(lex.TokenGreaterThen, closingToken)
 	}

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/JHelar/dumbo/internal/lex"
 )
@@ -10,11 +11,23 @@ type String struct {
 	Value string
 }
 
+var StringTokens []lex.TokenKind = []lex.TokenKind{
+	lex.TokenSymbol,
+	lex.TokenSpace,
+	lex.TokenNewline,
+	lex.TokenComma,
+	lex.TokenTab,
+	lex.TokenEquals,
+	lex.TokenOpenParen,
+	lex.TokenClosedParen,
+	lex.TokenSlash,
+}
+
 func parseString(lexer *lex.Lexer) (Expression, *ParserError) {
 	value := ""
 
 	err := nextTokenUntil(lexer, func(t lex.Token) bool {
-		if t.Kind == lex.TokenSymbol || t.Kind == lex.TokenSpace || t.Kind == lex.TokenNewline || t.Kind == lex.TokenComma || t.Kind == lex.TokenTab {
+		if slices.Contains(StringTokens, t.Kind) {
 			value += t.Content
 			return true
 		}

@@ -33,6 +33,8 @@ const (
 	TokenSymbol      TokenKind = "symbol"
 )
 
+var ChildrenSymbol = "children"
+
 var SingleTokens []rune = []rune{'(', ')', '{', '}', '<', '>', '\\', '/', '=', ' ', '"', '\n', ',', '\t'}
 
 type Token struct {
@@ -57,6 +59,15 @@ func NewLexer(content []byte) *Lexer {
 		currentToken: Token{},
 		currentRow:   0,
 		currentCol:   0,
+	}
+}
+
+func (lex *Lexer) newToken(kind TokenKind, content string) Token {
+	return Token{
+		Kind:    kind,
+		Content: content,
+		Col:     lex.currentCol,
+		Row:     lex.currentRow,
 	}
 }
 
@@ -105,21 +116,11 @@ func (lex *Lexer) Next() (Token, error) {
 
 		switch r {
 		case '(', ')', '{', '}', '<', '>', '\\', '/', '=', '"', ',':
-			token := Token{
-				Kind:    kind,
-				Content: content,
-				Row:     lex.currentRow,
-				Col:     lex.currentCol,
-			}
+			token := lex.newToken(kind, content)
 			lex.currentCol++
 			return token, nil
 		case '\n':
-			token := Token{
-				Kind:    TokenNewline,
-				Content: content,
-				Row:     lex.currentRow,
-				Col:     lex.currentCol,
-			}
+			token := lex.newToken(TokenNewline, content)
 			lex.currentRow++
 			lex.currentCol = 0
 			return token, nil
@@ -127,24 +128,14 @@ func (lex *Lexer) Next() (Token, error) {
 			content += lex.takeUntil(func(r rune) bool {
 				return r == ' '
 			})
-			token := Token{
-				Kind:    TokenSpace,
-				Content: content,
-				Row:     lex.currentRow,
-				Col:     lex.currentCol,
-			}
+			token := lex.newToken(TokenSpace, content)
 			lex.currentCol += len(content)
 			return token, nil
 		case '\t':
 			content += lex.takeUntil(func(r rune) bool {
 				return r == '\t'
 			})
-			token := Token{
-				Kind:    TokenTab,
-				Content: content,
-				Row:     lex.currentRow,
-				Col:     lex.currentCol,
-			}
+			token := lex.newToken(TokenTab, content)
 			lex.currentCol += len(content)
 			return token, nil
 		default:
@@ -154,20 +145,10 @@ func (lex *Lexer) Next() (Token, error) {
 			lex.currentCol += len(content)
 
 			if _, numberErr := strconv.Atoi(content); numberErr == nil {
-				return Token{
-					Kind:    TokenNumber,
-					Content: content,
-					Row:     lex.currentRow,
-					Col:     lex.currentCol,
-				}, nil
+				return lex.newToken(TokenNumber, content), nil
 			}
 
-			return Token{
-				Kind:    TokenSymbol,
-				Content: content,
-				Row:     lex.currentRow,
-				Col:     lex.currentCol,
-			}, nil
+			return lex.newToken(TokenSymbol, content), nil
 		}
 	}
 }
