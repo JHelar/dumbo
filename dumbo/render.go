@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
 
 	"github.com/JHelar/dumbo/internal/lex"
 	"github.com/JHelar/dumbo/internal/parser"
@@ -88,22 +87,19 @@ func (dumbo *Dumbo) renderExpr(expression parser.Expression, data any) (DumboEle
 			return component.renderer(ComponentChildren(children), attributes)
 		}
 
-		htmlAttributes := []string{}
+		htmlAttributes := ""
 		for key, value := range attributes {
 			valueStr, valueStrErr := getStringRepresentation(value)
 			if valueStrErr != nil {
 				return DumboElement{}, valueStrErr
 			}
 
-			htmlAttributes = append(htmlAttributes, fmt.Sprintf("%s=\"%s\"", key, valueStr))
+			htmlAttributes += fmt.Sprintf(" %s=\"%s\"", key, valueStr)
 		}
 		if parser.IsSelfClosingElement(t.TagName) {
-			return newElement(fmt.Sprintf("<%s %s>", t.TagName, strings.Join(htmlAttributes, " "))), nil
+			return newElement(fmt.Sprintf("<%s%s>", t.TagName, htmlAttributes)), nil
 		}
-		if len(htmlAttributes) > 0 {
-			return newElement(fmt.Sprintf("<%s %s>%s</%s>", t.TagName, strings.Join(htmlAttributes, " "), children, t.TagName)), nil
-		}
-		return newElement(fmt.Sprintf("<%s>%s</%s>", t.TagName, children, t.TagName)), nil
+		return newElement(fmt.Sprintf("<%s%s>%s</%s>", t.TagName, htmlAttributes, children, t.TagName)), nil
 	case parser.String:
 		return newElement(t.Value), nil
 	case parser.AttributeReference:
