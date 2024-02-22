@@ -108,6 +108,11 @@ func parseElement(lexer *lex.Lexer) (Expression, *ParserError) {
 
 childLoop:
 	for {
+		err = skipSpace(lexer)
+		if err != nil {
+			return nil, err
+		}
+
 		childToken, childTokenErr := lexer.Peak()
 		if childTokenErr != nil {
 			return nil, newError(ErrInternal, childTokenErr.Error())
@@ -133,7 +138,7 @@ childLoop:
 				return nil, err
 			}
 			children = append(children, child)
-		case lex.TokenSymbol, lex.TokenNewline:
+		case lex.TokenSymbol:
 			child, err := parseString(lexer)
 			if err != nil {
 				return nil, err

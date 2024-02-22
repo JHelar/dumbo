@@ -7,7 +7,7 @@ import (
 	"github.com/JHelar/dumbo/internal/parser"
 )
 
-func TestSimpleElement(t *testing.T) {
+func TestSelfClosingElement(t *testing.T) {
 	content := []byte("<img />")
 	lexer := lex.NewLexer(content)
 	parser := parser.NewParser(lexer)

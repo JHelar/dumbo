@@ -23,11 +23,13 @@ type DumboTemplate struct {
 
 type Dumbo struct {
 	components map[string]DumboComponent
+	templates  map[string]DumboTemplate
 }
 
 func New() *Dumbo {
 	return &Dumbo{
 		components: map[string]DumboComponent{},
+		templates:  map[string]DumboTemplate{},
 	}
 }
 

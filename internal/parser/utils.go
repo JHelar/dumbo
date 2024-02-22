@@ -44,7 +44,7 @@ func nextTokenUntil(lexer *lex.Lexer, pred func(lex.Token) bool) *ParserError {
 
 func skipSpace(lexer *lex.Lexer) *ParserError {
 	err := lexer.SkipUntil(func(t lex.Token) bool {
-		return t.Kind == lex.TokenSpace
+		return t.Kind == lex.TokenSpace || t.Kind == lex.TokenTab || t.Kind == lex.TokenNewline
 	})
 	if err != nil {
 		return newError(ErrInternal, err.Error())
